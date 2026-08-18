@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UADR CRM</title>
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --panel: #ffffff;
+      --panel-soft: #eef6f2;
+      --ink: #0d1e1a;
+      --muted: #5e706a;
+      --line: #dfeae5;
+      --green: #0d6b50;
+      --green-deep: #0a5a45;
+      --green-soft: #eaf7f2;
+      --amber: #d98017;
+      --amber-soft: #fff3df;
+      --red: #b63d3d;
+      --red-soft: #ffeaea;
+      --shadow: 0 22px 60px rgba(13, 30, 26, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--ink); }
+    body { min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+
+    .container { width: min(1280px, 94%); margin: 0 auto; }
+    header {
+      background: linear-gradient(135deg, var(--ink), #112b28);
+      color: white;
+      padding: 22px 0;
+      box-shadow: 0 12px 28px rgba(13, 30, 26, 0.12);
+    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 42px; height: 42px; display: grid; place-items: center;
+      border-radius: 12px; background: rgba(255,255,255,0.1); color: white;
+      font-size: 14px; font-weight: 800; letter-spacing: .08em;
+    }
+    .brand .meta { display: grid; }
+    .brand small { opacity: 0.75; }
+    .logout-btn, .primary-btn {
+      border: 0; border-radius: 10px; background: var(--green); color: white;
+      font-weight: 700; padding: 11px 16px; cursor: pointer; box-shadow: 0 12px 22px rgba(13, 107, 80, 0.2);
+    }
+    .ghost-btn {
+      border: 1px solid var(--line); background: white; color: var(--ink);
+      border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer;
+    }
+
+    main { padding: 28px 0 40px; }
+    .login-card, .panel {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .login-card {
+      max-width: 500px; margin: 60px auto 0; padding: 30px;
+    }
+    .login-card h2, .panel h2 { margin: 0 0 14px; }
+    .subtle { color: var(--muted); }
+    .alert {
+      display: none; padding: 10px 12px; border-radius: 10px; margin-bottom: 18px;
+      background: var(--red-soft); border: 1px solid #f1c8c8; color: var(--red);
+      font-size: 14px;
+    }
+    .alert.visible { display: block; }
+    form { display: grid; gap: 16px; }
+    label { display: grid; gap: 8px; font-weight: 700; }
+    input, select, textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: 12px; background: white;
+      padding: 12px 14px; color: var(--ink);
+    }
+    textarea { min-height: 92px; resize: vertical; }
+
+    .panel { padding: 24px; }
+    .dashboard-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      margin-bottom: 22px;
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 18px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--panel-soft); border: 1px solid var(--line); border-radius: 16px;
+      padding: 20px; display: grid; gap: 8px;
+    }
+    .stat-card .label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .stat-card .value { font-size: 32px; font-weight: 800; }
+    .stat-card .delta { font-size: 12px; color: var(--green); font-weight: 700; }
+
+    .controls {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .search-wrap input { padding-left: 42px; }
+    .search-wrap::before {
+      content: "⌕"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 18px;
+    }
+    .filter-select { min-width: 180px; }
+
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 12px; overflow: hidden; border-radius: 16px;
+      background: white; border: 1px solid var(--line);
+    }
+    th, td {
+      padding: 14px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top;
+    }
+    th {
+      background: #f4f8f6; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    }
+    tbody tr:hover { background: #fafdfb; }
+    .status-pill {
+      display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+      background: var(--green-soft); color: var(--green);
+      border: 1px solid rgba(13, 107, 80, 0.12);
+    }
+    .status-new { background: #eef5ff; color: #2153a3; }
+    .status-in_review { background: #fff2db; color: #8c5d00; }
+    .status-contacted { background: #ecf9f7; color: #0b7c6a; }
+    .status-needs_documents { background: #fef1d7; color: #a96300; }
+    .status-resolved { background: #eaf7f2; color: var(--green); }
+    .status-rejected { background: #ffeaea; color: var(--red); }
+
+    .status-select { min-width: 160px; border-color: var(--line); }
+    .note-box {
+      width: 100%; min-height: 72px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+      background: #fafcfb; color: var(--ink);
+    }
+    .empty-state {
+      display: grid; place-items: center; text-align: center; color: var(--muted); padding: 40px 20px;
+      border: 1px dashed var(--line); border-radius: 16px; background: #fbfdfc;
+    }
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .dashboard-head, .controls, .topbar { flex-direction: column; align-items: stretch; }
+    }
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container topbar">
+      <div class="brand">
+        <div class="brand-mark">UADR</div>
+        <div class="meta">
+          <strong>Discovery CRM</strong>
+          <small>Case management</small>
+        </div>
+      </div>
+      <button id="logoutBtn" class="ghost-btn" type="button" style="display: none;">Log out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="loginSection" class="login-card">
+      <h2>Admin login</h2>
+      <div id="loginMessage" class="alert"></div>
+      <form id="loginForm">
+        <label>
+          Username
+          <input name="username" type="text" value="admin" required />
+        </label>
+        <label>
+          Password
+          <input name="password" type="password" value="admin123" required />
+        </label>
+        <button class="primary-btn" type="submit">Log in</button>
+      </form>
+    </section>
+
+    <section id="dashboardSection" class="panel" style="display: none;">
+      <div class="dashboard-head">
+        <div>
+          <h2>Case pipeline</h2>
+          <div id="userLabel" class="subtle">Loading...</div>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="controls">
+        <div class="search-wrap">
+          <input id="searchInput" type="search" placeholder="Search name, contact or case details" />
+        </div>
+        <select id="statusFilter" class="filter-select">
+          <option value="all">All statuses</option>
+          <option value="new">New</option>
+          <option value="in_review">In review</option>
+          <option value="contacted">Contacted</option>
+          <option value="needs_documents">Needs documents</option>
+          <option value="resolved">Resolved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+
+      <div id="enquiry-list" class="empty-state">Loading enquiries...</div>
+    </section>
+  </main>
+
+  <script>
+    const statusLabels = {
+      new: 'New',
+      in_review: 'In review',
+      contacted: 'Contacted',
+      needs_documents: 'Needs documents',
+      resolved: 'Resolved',
+      rejected: 'Rejected'
+    };
+
+    let currentUser = null;
+    let allEnquiries = [];
+    let currentFilter = 'all';
+    let currentSearch = '';
+
+    function statusClass(status) {
+      return `status-${status || 'new'}`;
+    }
+
+    async function callApi(url, options = {}) {
+      const response = await fetch(url, {
+        credentials: 'include',
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json') ? await response.json() : null;
+      if (!response.ok) throw new Error(data && data.message ? data.message : 'Request failed');
+      return data;
+    }
+
+    async function checkSession() {
+      try {
+        const data = await callApi('/api/admin/me');
+        currentUser = data.user;
+        renderDashboard();
+      } catch (error) {
+        currentUser = null;
+        renderLogin();
+      }
+    }
+
+    function renderLogin() {
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('dashboardSection').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+    }
+
+    function renderDashboard() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboardSection').style.display = 'block';
+      document.getElementById('logoutBtn').style.display = 'inline-block';
+      document.getElementById('userLabel').textContent = currentUser ? `Signed in as ${currentUser.username}` : '';
+      loadEnquiries();
+    }
+
+    function renderStats(enquiries) {
+      const total = enquiries.length;
+      const byStatus = statusKeys.reduce((acc, key) => {
+        acc[key] = enquiries.filter((item) => (item.status || 'new') === key).length;
+        return acc;
+      }, {});
+
+      const cards = [
+        { label: 'Total leads', value: total, delta: 'All cases' },
+        { label: 'New', value: byStatus.new, delta: 'Fresh leads' },
+        { label: 'In review', value: byStatus.in_review, delta: 'Active review' },
+        { label: 'Resolved', value: byStatus.resolved, delta: 'Closed successfully' }
+      ];
+
+      document.getElementById('statsGrid').innerHTML = cards.map((card) => `
+        <div class="stat-card">
+          <div class="label">${card.label}</div>
+          <div class="value">${card.value}</div>
+          <div class="delta">${card.delta}</div>
+        </div>
+      `).join('');
+    }
+
+    async function loadEnquiries() {
+      const container = document.getElementById('enquiry-list');
+      try {
+        const data = await callApi('/api/admin/enquiries');
+        allEnquiries = data.enquiries || [];
+        renderStats(allEnquiries);
+        renderTable();
+      } catch (error) {
+        container.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function getFilteredEnquiries() {
+      return allEnquiries.filter((enquiry) => {
+        const matchesStatus = currentFilter === 'all' || (enquiry.status || 'new') === currentFilter;
+        const haystack = `${enquiry.name} ${enquiry.contact} ${enquiry.details} ${enquiry.type}`.toLowerCase();
+        const matchesSearch = haystack.includes(currentSearch.toLowerCase());
+        return matchesStatus && matchesSearch;
+      });
+    }
+
+    function renderTable() {
+      const container = document.getElementById('enquiry-list');
+      const filtered = getFilteredEnquiries();
+
+      if (!filtered.length) {
+        container.innerHTML = '<div class="empty-state">No matching enquiries found.</div>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Contact</th>
+              <th>Type</th>
+              <th>Created</th>
+              <th>Details</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map((enquiry) => `
+              <tr>
+                <td>
+                  <strong>${escapeHtml(enquiry.name)}</strong>
+                </td>
+                <td>${escapeHtml(enquiry.contact)}</td>
+                <td>${escapeHtml(enquiry.type || 'Other')}</td>
+                <td>${new Date(enquiry.createdAt).toLocaleString()}</td>
+                <td>${escapeHtml(enquiry.details)}</td>
+                <td>
+                  <select class="status-select" data-id="${enquiry.id}" aria-label="Update status for ${escapeHtml(enquiry.name)}">
+                    ${Object.keys(statusLabels).map((value) => `
+                      <option value="${value}" ${((enquiry.status || 'new') === value ? 'selected' : '')}>${statusLabels[value]}</option>
+                    `).join('')}
+                  </select>
+                </td>
+                <td>
+                  <textarea class="note-box" data-note-id="${enquiry.id}" aria-label="Case note for ${escapeHtml(enquiry.name)}">${escapeHtml(enquiry.note || '')}</textarea>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      document.querySelectorAll('.status-select').forEach((select) => {
+        select.addEventListener('change', async (event) => {
+          const id = event.target.dataset.id;
+          const status = event.target.value;
+          const noteArea = document.querySelector(`[data-note-id="${id}"]`);
+          await updateStatus(id, status, noteArea ? noteArea.value : '');
+        });
+      });
+
+      document.querySelectorAll('.note-box').forEach((textarea) => {
+        textarea.addEventListener('change', async (event) => {
+          const id = event.target.dataset.noteId;
+          const statusSelect = document.querySelector(`[data-id="${id}"]`);
+          await updateStatus(id, statusSelect ? statusSelect.value : 'new', event.target.value);
+        });
+      });
+    }
+
+    async function updateStatus(id, status, note) {
+      try {
+        await callApi(`/api/admin/enquiries/${id}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status, note })
+        });
+        await loadEnquiries();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      const message = document.getElementById('loginMessage');
+
+      try {
+        await callApi('/api/admin/login', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+        form.reset();
+        message.classList.remove('visible');
+        await checkSession();
+      } catch (error) {
+        message.textContent = error.message;
+        message.classList.add('visible');
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await callApi('/api/admin/logout', { method: 'POST' });
+        currentUser = null;
+        renderLogin();
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    const statusKeys = ['new', 'in_review', 'contacted', 'needs_documents', 'resolved', 'rejected'];
+
+    document.getElementById('statusFilter').addEventListener('change', (event) => {
+      currentFilter = event.target.value;
+      renderTable();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (event) => {
+      currentSearch = event.target.value.trim();
+      renderTable();
+    });
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    checkSession();
+  </script>
+</body>
+</html>
